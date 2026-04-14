@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Su Ürünleri Mevzuatı Deneme Sınavı - Temiz Set</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      padding-bottom: 80px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .menu-container, .quiz-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .menu-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: left;
+      cursor: pointer;
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white;
+    }
+
+    .menu-btn.locked {
+      background: linear-gradient(135deg, #6c757d, #495057);
+      cursor: not-allowed;
+      order: 999;
+      opacity: 0.85;
+    }
+
+    .wrong-menu-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: left;
+      cursor: pointer;
+      background: linear-gradient(135deg, #dc3545, #a71d2a);
+      color: white;
+      order: 9999;
+      animation: wrongBlink 10s infinite;
+    }
+
+    @keyframes wrongBlink {
+      0%, 45% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(220,53,69,0);
+      }
+      50% {
+        opacity: 0.35;
+        transform: scale(1.02);
+        box-shadow: 0 0 18px rgba(220,53,69,0.45);
+      }
+      55%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(220,53,69,0);
+      }
+    }
+
+    .quiz-container {
+      display: none;
+      position: relative;
+      padding-top: 85px;
+      min-height: 100vh;
+    }
+
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 6px;
+      background: #28a745;
+      transition: 0.3s;
+      width: 0%;
+      border-radius: 14px 14px 0 0;
+    }
+
+    .main-menu-btn {
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: calc(1rem + 4pt);
+      color: #333;
+      padding: 5px 0;
+    }
+
+    .header-info {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding-right: 110px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+      flex: 1;
+      flex-wrap: wrap;
+    }
+
+    .header-subject {
+      font-weight: normal;
+      color: #777;
+      font-size: 0.95rem;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .retry-badge {
+      display: none;
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffe69c;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    .question-title {
+      white-space: pre-line;
+      margin-top: 0;
+      margin-bottom: 16px;
+      line-height: 1.45;
+      font-size: 1.2rem;
+      color: #222;
+    }
+
+    .option-btn {
+      width: 100%;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
+      background: #f8f9fa;
+      text-align: left;
+      cursor: pointer;
+      font-size: 1.05rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      position: relative;
+    }
+
+    .option-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .option-btn:disabled {
+      cursor: default;
+    }
+
+    .option-btn.correct {
+      background: #d4edda !important;
+      border-color: #28a745 !important;
+      color: #155724 !important;
+      font-weight: bold;
+    }
+
+    .option-btn.wrong {
+      background: #f8d7da !important;
+      border-color: #dc3545 !important;
+      color: #721c24 !important;
+      font-weight: bold;
+    }
+
+    .tick {
+      display: inline-block;
+      margin-left: 10px;
+      color: #1f9d45;
+      font-weight: bold;
+      opacity: 0;
+      transform: scale(0.4);
+    }
+
+    .tick.show {
+      animation: popTick 0.45s ease forwards;
+    }
+
+    @keyframes popTick {
+      0%   { opacity: 0; transform: scale(0.4); }
+      60%  { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .explanation {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: #eaf2f8;
+      border-left: 5px solid #2980b9;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .nav-controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 18px;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .next-btn { background: #007bff; }
+    .prev-btn {
+      background: #e9ecef;
+      color: #dc3545 !important;
+      border: 1px solid #ddd;
+    }
+
+    .quiz-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+      color: #666;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .disclaimer-box {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fdfdfd;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      color: #888;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .disclaimer-title {
+      display: block;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+
+    .source-tag {
+      position: fixed;
+      bottom: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.05);
+      color: #777;
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-weight: bold;
+      z-index: 9999;
+    }
+
+    .reset-set-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: #ffc107;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.8rem;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    @media (max-width: 480px) {
+      .quiz-container {
+        padding-top: 110px;
+      }
+
+      .header-info {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        padding-right: 104px;
+        align-items: flex-start;
+      }
+
+      .header-left {
+        display: block;
+        padding-right: 6px;
+      }
+
+      .main-menu-btn {
+        display: block;
+        font-size: 0.95rem;
+        padding: 0;
+        margin-bottom: 6px;
+      }
+
+      .header-subject {
+        display: block;
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.3;
+        max-width: 100%;
+      }
+
+      .question-title {
+        font-size: 1.05rem;
+      }
+
+      .option-btn {
+        font-size: 1rem;
+        padding: 14px;
+      }
+
+      .reset-set-btn {
+        top: 12px;
+        right: 12px;
+        font-size: 0.75rem;
+        padding: 7px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div id="menuContainer" class="menu-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px;">
+      <h1 id="mainTitle" style="margin:0;">Su Ürünleri Mevzuatı Deneme Sınavı - Temiz Set</h1>
+      <button onclick="clearAllStatistics()" style="background:#dc3545; color:white; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:0.75rem;">
+        Verileri Sıfırla
+      </button>
+<button onclick="shuffleAllQuestions()" style="background:#28a745; color:white; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:0.75rem;">Soruları Karıştır</button>
+
+    </div>
+
+    <div id="menuGrid" class="menu-grid"></div>
+
+    <div class="disclaimer-box">
+      <span class="disclaimer-title">⚠️ Önemli Uyarı</span>
+      Bu sistemde yer alan içerikler yalnızca eğitim amaçlıdır. İçeriklerin kullanımından doğabilecek doğrudan veya dolaylı hiçbir sorumluluk kabul edilmez. Tüm kullanım sorumluluğu kullanıcıya aittir.
+    </div>
+  </div>
+
+  <div id="quizContainer" class="quiz-container">
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="header-info">
+      <div class="header-left">
+        <button onclick="showMenu()" class="main-menu-btn">☰ Ana Menü</button>
+        <span id="headerSubject" class="header-subject"></span>
+      </div>
+    </div>
+
+    <button onclick="resetCurrentSet()" class="reset-set-btn">Seti Sıfırla</button>
+
+    <div id="retryBadge" class="retry-badge">Yalnış cevaplanan soru</div>
+    <h2 id="questionText" class="question-title">...</h2>
+
+    <div id="optionsArea"></div>
+
+    <div class="quiz-footer">
+      <div id="footerLeft">Kalan: 0</div>
+      <div id="footerRight">0 / 0</div>
+    </div>
+
+    <div id="explanationArea" class="explanation"></div>
+
+    <div class="nav-controls">
+      <button id="prevBtn" class="nav-btn prev-btn" onclick="goBack()" style="visibility:hidden;">❮ Önceki</button>
+      <button id="nextBtn" class="nav-btn next-btn" onclick="goForward()" style="visibility:hidden;">Yeni Soru ❯</button>
+    </div>
+  </div>
+</div>
+
+<div class="source-tag" id="sourceTag">Kaynak: resmi mevzuat / su_urunleri_mevzuati_temiz_set_v4</div>
+
+<script>
+  const BASE_SUBJECT = "su ürünleri mevzuatı";
+  const VERSION_NUMBER = 4;
+
+  function buildVersionName(base, version) {
+    return `${base} Versiyon ${version}`;
+  }
+
+  function buildVersionSlug(base, version) {
+    return `${base.toLowerCase().replace(/ç/g, "c").replace(/ğ/g, "g").replace(/ı/g, "i").replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")}_versiyon_${version}`;
+  }
+
+  const CURRENT_SUBJECT = BASE_SUBJECT;
+  const VERSION_SLUG = buildVersionSlug(BASE_SUBJECT, VERSION_NUMBER);
+  const SOURCE_TEXT = `Kaynak: resmi mevzuat + temizlenmiş set`; 
+  const QUESTIONS_PER_SET = 30;
+
+  const questions = [
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Deniz ve içsularda su ürünleri istihsal eden gerçek ve tüzel kişileri\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Su ürünleri müstahsilleri",
+      "Balıkçı gemisi sahipleri",
+      "Avcılık yapan kişiler",
+      "Su ürünleri işletmeleri",
+      "Su ürünleri yetiştiricileri"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Su ürünleri yetiştiricileri ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Denizlerde ve içsularda su ürünleri istihsal etmek için kazık, çit, çubuk, tel, taş veya beton ve benzeri manialarla çevrilmek suretiyle, sınırları değişmeyecek şekilde kurulan veya tabii olarak çevrilmiş su sahalarından meydana getirilen diple irtibatlı tesisleri\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Voli yeri",
+      "Sabit dalyan",
+      "Üretme ve yetiştirme yerleri",
+      "Muvakkat dalyan (Yüzer)",
+      "Dalyan yeri"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Üretme ve yetiştirme yerleri ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre Tarım ve Orman Bakanlığının izni alınmadan akarsularda aşağıdakilerden hangisinin yapılması yasaktır?",
+    "o": [
+      "Akarsu debisinin izlenmesi",
+      "Numune amaçlı ağ atılması",
+      "Su kalitesi ölçümü yapılması",
+      "Su ürünlerinin geçişine engel olacak ağlar kurulması",
+      "Su ürünleri gözlem çalışması"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Su kalitesi ölçümü yapılması seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre dalyandan geçiş şartları ile geçiş yapacakların uyması gereken hususlar hangi merci tarafından tespit ve ilan edilir?",
+    "o": [
+      "Devlet Su İşleri Genel Müdürlüğü",
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Belediye Başkanlığı",
+      "Valilik",
+      "Maliye Bakanlığı"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Maliye Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Dip ve orta su trolunu yapmaya elverişli trol ağları ve bunlarla yapılan su ürünleri istihsalini\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Dip trolu",
+      "Parakete",
+      "Kombine trol",
+      "Gırgır ağı",
+      "Orta su trolu"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Kombine trol ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre\" Kooperatifleşme\" kapsamında aşağıda verilen hükümlerden hangisi yanlıştır?",
+    "o": [
+      "Su ürünleri müstahsilleri 2834 sayılı Tarım Satış Kooperatifleri ve Birlikleri hakkındaki Kanun ile 2836 sayılı Tarım Kredi Kooperatifleri ve 1163 sayılı Kanuna tabi İstihsal Kooperatifleri ve mesleğin özelliklerine uygun kooperatif ve birlikler kurabilirler.",
+      "Denizcilik Bankası aynı esasa göre kredi açamaz.",
+      "Kooperatif ve birliklerin anamukavelename formülleri T. C. Ziraat Bankası Genel Müdürlüğü ile Ticaret Bakanlığının ilgili dairesi tarafından müştereken hazırlanır.",
+      "T. C. Ziraat Bankası su ürünleri üreten ve üretimini bizzat satan kooperatif ve şahıslara açacağı kredilerde üretim ve pazarlamada kullanılan bütün araç ve gereçler Kredi Maritim sistemi (Balık üretiminde kullanılan tekne, motor, ağ vs. benzeri araç ve gereçleri sigortalamak şartıyla krediye karşılık gösterme esası) na göre teminat olarak kullanılacağı gibi, üretim, depolama ve pazarlama tesisleri tapu veya kira mukavelesi esasına göre de teminat olarak kullanılır.",
+      "Bu kooperatif ve birlikler \"Su Ürünleri İstihsal Kooperatifleri\", \"Su Ürünleri Satış Kooperatifleri\", \"Su Ürünleri Satış Kooperatifleri Birliği ve Su Ürünleri Kredi Kooperatifleri\" ismini alırlar."
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Bu kooperatif ve birlikler \"Su Ürünleri İstihsal Kooperatifleri\", \"Su Ürünleri Satış Kooperatifleri\", \"Su Ürünleri Satış Kooperatifleri Birliği ve Su Ürünleri Kredi Kooperatifleri\" ismini alırlar. ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünleri yetiştiricilik tesislerine ilişkin izinler; bu tesislere ait projenin sağlık, memleket ekonomisi, seyrüsefer, teknik ve ilmî bakımlardan mahzur taşımaması halinde kim tarafından verilir?",
+    "o": [
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Hazine ve Maliye Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Devlet Su İşleri Genel Müdürlüğü"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki Hazine ve Maliye Bakanlığı tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Şamandıra, duba, tekne ve saireye bağlı ağlarla çevrilmek suretiyle kurulan su mahsulleri istihsaline mahsus tesisleri\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Üretme ve yetiştirme yerleri",
+      "Muvakkat dalyan (Yüzer)",
+      "Voli yeri",
+      "Dalyan yeri",
+      "Sabit dalyan"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Dalyan yeri ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre çıkarılan yönetmelikteki amatör avcılıkla ilgili usul ve esaslara aykırı hareket eden kişilere kaç Türk lirasından kaç Türk lirasına kadar idarî para cezası verilir?",
+    "o": [
+      "Elli Türk lirasından beş yüz Türk lirasına kadar",
+      "İki yüz elli Türk lirasından beş yüz Türk lirasına kadar",
+      "Üç yüz elli Türk lirasından bin yüz Türk lirasına kadar",
+      "Beş yüz elli Türk lirasından iki bin yüz Türk lirasına kadar",
+      "Yüz Türk lirasından beş yüz Türk lirasına kadar"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmünde bu sorunun sayısal karşılığı İki yüz elli Türk lirasından beş yüz Türk lirasına kadar olarak düzenlenmiştir."
+  },
+  {
+    "q": "I. Ticari amaçlı su ürünleri avcılık faaliyetinde bulunacak gerçek ve tüzel kişiler ile ticari amaçlı su ürünleri avcılık ya da yetiştiricilik faaliyetinde kullanılacak gemiler ve diğer su vasıtaları için Tarım ve Orman Bakanlığından ruhsat tezkeresi veya izin alınması zorunludur.Kalem II. Ruhsat tezkerelerinin veya izinlerin verilmesine, yenilenmesine, süresine, iptaline ve ruhsat kod numarasının gemiye yazılışına, türlerin avlanma miktarlarına, bölgesel avcılığa ve av araçlarına göre verilecek izinlere, amatör amaçlı avcılık faaliyetlerinde türlere, yerlere ve yöntemlere göre belirlenen esaslar dahilinde getirilecek sınırlamalar veya ruhsata tabi olacaklar ile yerli ve yabancı uyruklu kişilerce yapılacak amatör avcılığa ve bu maddenin uygulanmasına ilişkin usul ve esaslar Tarım ve Orman Bakanlığınca çıkarılan yönetmelikle belirlenir. III. Ruhsat tezkerelerinin veya izinlerin yetkililerce talep edilmesi halinde gösterilmesi zorunludur. 1380 sayılı Su Ürünleri Kanununa göre su ürünleri ruhsat tezkereleri ve izinleri hakkında yukarıda verilen hükümlerden hangisi ya da hangileri doğrudur?",
+    "o": [
+      "I, II ve III",
+      "I ve III",
+      "I ve II",
+      "Yalnız II",
+      "II ve III"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükümleri birlikte değerlendirildiğinde doğru kombinasyon I, II ve III olur."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre baraj göllerine veya ihdas olunacak diğer sunʼi göllere su verilmeden önce su ürünleri bakımından alınması gereken tedbirlerin tespiti için ilgililerce nereye müracaat olunması gereklidir?",
+    "o": [
+      "Çalışma ve Sosyal Güvenlik Bakanlığına",
+      "Tarım Orman ve Köyişleri Bakanlığına",
+      "Hazine ve Maliye Bakanlığına",
+      "İçişleri Bakanlığına",
+      "Cumhurbaşkanlığına"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Tarım Orman ve Köyişleri Bakanlığına seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Su ürünlerinin istihsalinde kullanılan gemiler ile her türlü malzeme, teçhizat, alet, edevat, yemler, takım ve tesislerini\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "İstihsal vasıtaları",
+      "Mansaplar",
+      "İstihsal yerleri",
+      "Lagünler",
+      "Üretme ve yetiştirme yerleri"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Mansaplar ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre içsuların sulama, enerji istihsali gibi maksatlarla kullanılması halinde bu sularda mevcut su ürünlerinin yaşama, üreme, muhafaza ve istihsalini zarardan koruyacak tedbirlerin ilgililer tarafından alınması şarttır. Bu tedbirlerin nelerden ibaret olduğu kim tarafından tespit olunur?",
+    "o": [
+      "İçişleri Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Hazine ve Maliye Bakanlığı",
+      "Cumhurbaşkanlığı"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki Çalışma ve Sosyal Güvenlik Bakanlığı tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünlerinin istihsal ve ihracatını artırmak maksadiyle, su ürünleri istihsal ve vasıta ve malzemelerinde ithal sırasında alınan her türlü vergi, resim ve harçları indirmeye veya tamamen kaldırmaya kim yetkilidir?",
+    "o": [
+      "Türkiye Büyük Millet Meclisi",
+      "Cumhurbaşkanı",
+      "Ticaret Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "Hazine ve Maliye Bakanlığı"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Hazine ve Maliye Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre Devletin hüküm ve tasarrufu altında bulunan istihsal yerlerinin sınırlarının tespitinde oluşturulan heyete aşağıdakilerden hangisi başkanlık eder?",
+    "o": [
+      "Tarım Orman ve Köyişleri Bakanlığı temsilcisi",
+      "Mahalli kadastro veya tapu memuru",
+      "Liman dairesi temsilcisi",
+      "Maliye Bakanlığı temsilcisi",
+      "Sulh hukuk hâkimi"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Maliye Bakanlığı temsilcisi seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre akarsular üzerinde kurulan baraj ve regülatör gibi su yapılarında su ürünleri açısından yerine getirilmesi gereken temel yükümlülük aşağıdakilerden hangisidir?",
+    "o": [
+      "Balık stoklama yapılması",
+      "Su seviyesinin sabit tutulması",
+      "Balık geçidi yapılması ve işler durumda bulundurulması",
+      "Sürekli biyolojik izleme yapılması",
+      "Av yasağı ilan edilmesi"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Balık geçidi yapılması ve işler durumda bulundurulması seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre patlayıcı ve zararlı maddeler kullanma yasağı kapsamında aşağıdaki uygulamalardan hangisi izin alınmasına gerek olmaksızın yapılabilir?",
+    "o": [
+      "Elektrik cereyanı ile avcılık",
+      "Hava tazyiki ile avlanma",
+      "Patlayıcı madde kullanımı",
+      "Elektroşok ile balık sersemletme",
+      "Denizlerde olta ile avlanan su ürünlerinin çıkarılmasında elektroşok uygulanması"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Elektroşok ile balık sersemletme seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre ticari amaçlı su ürünleri avcılık faaliyetinde bulunacak gerçek ve tüzel kişilerin yapması zorunlu olan işlem aşağıdakilerden hangisidir?",
+    "o": [
+      "Sahil Güvenlik Komutanlığından kayıt belgesi almak",
+      "Tarım ve Orman Bakanlığından ruhsat tezkeresi veya izin almak",
+      "İl özel idaresinden faaliyet izni almak",
+      "Çevre izin belgesi almak",
+      "Belediye işletme ruhsatı almak"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap İl özel idaresinden faaliyet izni almak seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Deniz ve içsularda su ürünleri istihsaline elverişli, sahile bitişik ve sınırları belli su sahalarını\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Dalyan yeri",
+      "Sabit dalyan",
+      "Üretme ve yetiştirme yerleri",
+      "Muvakkat dalyan (Yüzer)",
+      "Voli yeri"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Voli yeri ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Göller, suni göller, lagünler, baraj gölleri, bentler, regülatörler, kanallar, arklar, akarsular, mansaplar, üretme ve yetiştirme yerlerini \" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Mansaplar",
+      "İstihsal vasıtaları",
+      "İçsular",
+      "Lagünler",
+      "İstihsal yerleri"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram İçsular ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı barınaklarından yararlanma hakkı öncelikli olarak ticari balıkçılara ve su ürünleri yetiştiricilerine aittir. Balıkçı barınakları ve bunlara ait üst yapı tesislerinden faydalanma hakkı Milli Emlak Genel Müdürlüğünün görüşü alınarak, Tarım ve Orman Bakanlığınca süresi kaç yıldan fazla olmamak üzere su ürünleri ile ilgili kooperatif veya kooperatif birliklerine ya da üretici birliklerine 2886 sayılı Devlet İhale Kanunu hükümlerine tabi olmaksızın pazarlıkla kiraya verilir?",
+    "o": [
+      "10",
+      "3",
+      "15",
+      "5",
+      "7"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmünde bu sorunun sayısal karşılığı 5 olarak düzenlenmiştir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünleri istihsal hakkı kiraya verilecek alanlarda, öncelikle kiralama yapılacak su ürünleri kooperatiflerinin üyeleri için aşağıdakilerden hangisi zorunludur?",
+    "o": [
+      "Tarım ve Orman Bakanlığı personeli olmak",
+      "En az üç yıl üretim bölgesinde ikamet etmek",
+      "En az beş yıldır üretim bölgesinde ikamet etmek",
+      "Amatör avcılık belgesine sahip olmak",
+      "İhracat yapıyor olmak"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap En az beş yıldır üretim bölgesinde ikamet etmek seçeneğindeki içeriktir."
+  },
+  {
+    "q": "I. Tarım Orman ve Köyişleri Bakanlığının, su ürünleri müstahsilleri ile su ürünleri ile iştigal eden tacir, sanayici ve esnaftan bu işlerine mütaallik lüzumlu göreceği bilgileri ve belgeleri isteyebilir. II. İstenilen bilgi ve belgeleri ilgililer tayin edilen müddet içinde ve istenilen şekilde vermeye mecburdurlar. III. Bu madde gereğince verilen ferdi ve hususi bilgi ve belgeler ifşa edilemeyeceği gibi verenler aleyhine delil ve vesika olarak da kullanılmaz. 1380 sayılı Su Ürünleri Kanununa göre bilgi ve belge vermek kapsamında yukarıda verilen hükümlerden hangisi ya da hangileri doğrudur?",
+    "o": [
+      "Yalnız III",
+      "Yalnız II",
+      "I ve II",
+      "Yalnız I",
+      "I, II ve III"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükümleri birlikte değerlendirildiğinde doğru kombinasyon I, II ve III olur."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre kamu tüzel kişilerine ait dalyanlardan geçiş kapsamında Hazinenin veya Devlet Su İşlerinin özel mülkiyetinde bulunan yerlerde geçiş hakkı hangi mevzuata göre belirlenir?",
+    "o": [
+      "Çevre Kanunu",
+      "Kıyı Kanunu",
+      "Medeni Kanun",
+      "Su Ürünleri Kanunu",
+      "İmar Kanunu"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar İmar Kanunu ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı barınaklarından yararlanma hakkı öncelikli olarak ticari balıkçılara ve su ürünleri yetiştiricilerine aittir. Balıkçı barınakları ve bunlara ait üst yapı tesislerinden faydalanma hakkı Milli Emlak Genel Müdürlüğünün görüşü alınarak, kim tarafından süresi on yıldan fazla olmamak üzere su ürünleri ile ilgili kooperatif veya kooperatif birliklerine ya da üretici birliklerine 2886 sayılı Devlet İhale Kanunu hükümlerine tabi olmaksızın pazarlıkla kiraya verilir?",
+    "o": [
+      "Hazine ve Maliye Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "Ulaştırma ve Altyapı Bakanlığı"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki Hazine ve Maliye Bakanlığı tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre dalyandan geçişe izin verilmesinde temel şart aşağıdakilerden hangisidir?",
+    "o": [
+      "Yerel idarenin onayı",
+      "Dalyanın faaliyetine zarar verilmemesi",
+      "Bakanlıktan yazılı izin alınması",
+      "Zaman sınırlamasına uyulması",
+      "Ücret ödenmesi"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Ücret ödenmesi seçeneğindeki içeriktir."
+  },
+  {
+    "q": "I. Devletin hüküm ve tasarrufu altında bulunan dalyanların kiracıları veya bunları işletenler belirli bir geçim veya istihsal faaliyetinin icabı olarak bazı iş ve sanat erbabının dalyanın faaliyetine zarar vermemek şartıyla, kendi vasıtalarıyla dalyandan geçmelerine müsaade etmekle mükelleftir. II. Geçiş şartları ile dalyandan geçeceklerin riayet edecekleri hususlar icap ve teamüller de nazara alınarak Tarım Orman ve Köyişleri Bakanlığınca tespit ve ilan olunur. III. Hazinenin veya Devlet Su İşlerinin özel mülkiyetinde bulunan yerlerde geçiş hakkı Çevre Kanunu hükümlerine göre tespit olunur. 1380 sayılı Su Ürünleri Kanununa göre kamu tüzel kişilerine ait dalyanlardan geçiş kapsamında yukarıda verilen hükümlerden hangisi ya da hangileri doğrudur?",
+    "o": [
+      "I, II ve III",
+      "Yalnız I",
+      "I ve II",
+      "Yalnız II",
+      "II ve III"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükümleri birlikte değerlendirildiğinde doğru kombinasyon I ve II olur."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre deniz dalyanları ile voli yerlerinin ve mansapların sınırlarının tespitinde kurulan ilgili heyete aşağıdakilerden hangisinin katılması zorunludur?",
+    "o": [
+      "Belediye başkanı",
+      "Sahil güvenlik komutanı",
+      "İl özel idaresi temsilcisi",
+      "En yakın liman dairesi temsilcisi",
+      "Vali"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap İl özel idaresi temsilcisi seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre\" Trol\" hakkında aşağıda verilen hükümlerden hangisi yanlıştır?",
+    "o": [
+      "Orta su trolunun dip trolu olarak kullanılması serbesttir.",
+      "İlmi maksatlarla yapılacak incelemelerde trol kullanılabilir.",
+      "Munhasıran sünger avında kullanılan kankava troldan sayılmaz.",
+      "Kara sularımız dahilinde dip trolu ile su ürünleri istihsali şekli ayrı bir yönetmelikle düzenlenir. Bu yönetmelik hükümlerine aykırı olarak dip trolu ile su ürünleri istihsali yasaktır.",
+      "İçsular, Marmara Denizi, İstanbul ve Çanakkale boğazlarında her çeşit trol ile su ürünleri istihsali yasaktır."
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Kara sularımız dahilinde dip trolu ile su ürünleri istihsali şekli ayrı bir yönetmelikle düzenlenir. Bu yönetmelik hükümlerine aykırı olarak dip trolu ile su ürünleri istihsali yasaktır. ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı barınaklarından yararlanma hakkı öncelikli olarak ticari balıkçılara ve su ürünleri yetiştiricilerine aittir. Balıkçı barınakları ve bunlara ait üst yapı tesislerinden faydalanma hakkı Milli Emlak Genel Müdürlüğünün görüşü alınarak, Tarım ve Orman Bakanlığınca süresi on yıldan fazla olmamak üzere su ürünleri ile ilgili kooperatif veya kooperatif birliklerine ya da üretici birliklerine 2886 sayılı Devlet İhale Kanunu hükümlerine tabi olmaksızın pazarlıkla kiraya verilir. Bu kapsamda ilan edilen kaç günlük süre içinde kooperatifler veya kooperatif birliklerinden ya da üretici birliklerinden talep vaki olmazsa 2886 sayılı Devlet İhale Kanunu gereğince Tarım ve Orman Bakanlığınca gerçek veya tüzel kişilere ihale ile verilir?",
+    "o": [
+      "30",
+      "15",
+      "45",
+      "60",
+      "10"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmünde bu sorunun sayısal karşılığı 15 olarak düzenlenmiştir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre Hazinenin veya Devlet Su İşleri Genel Müdürlüğünün mülkiyetinde veya Devletin hüküm ve tasarrufu altında bulunan deniz ve içsularda veya bu yerlerden su alınarak karada yapılacak su ürünleri üretim tesislerinde veya bu alanları ıslah etmek suretiyle projeye dayalı olarak yapılacak su ürünleri yetiştiriciliği yatırımlarında, ihtiyaç duyulan su ve su alanları ile deniz ve içsulardaki su ürünleri istihsal hakkının kira yöntem ve teknik şartları, süreleri ve yıllık bedelleri, üretim yerlerinin özellikleri dikkate alınarak kim tarafından tespit edilir?",
+    "o": [
+      "Çevre, Şehircilik ve İklim Değişikliği Bakanlığı",
+      "Milli Emlak Genel Müdürlüğü",
+      "Devlet Su İşleri Genel Müdürlüğü",
+      "İl özel idareleri",
+      "Tarım ve Orman Bakanlığı"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki Devlet Su İşleri Genel Müdürlüğü tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünleri ruhsat tezkereleri veya izinleriyle ilgili aşağıdaki ifadelerden hangisi doğrudur?",
+    "o": [
+      "Yetkililerce talep edilmesi halinde gösterilmesi zorunludur",
+      "Yalnızca gemi kaptanında bulunması yeterlidir",
+      "Sadece denetim sırasında ibraz edilmesi yeterlidir",
+      "Sadece ticari avcılıkta geçerlidir, yetiştiricilikte aranmaz",
+      "Talep edilmesi halinde gösterilmesi zorunlu değildir"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Talep edilmesi halinde gösterilmesi zorunlu değildir seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre yasak vasıta ve usullerle yapılan ilmi ve teknik etütler sonucunda elde edilen su mahsulleri için aşağıdakilerden hangisi doğrudur?",
+    "o": [
+      "İhracat amaçlı kullanılabilir",
+      "Açık artırma yoluyla satılabilir",
+      "Sosyal amaçlı dağıtılabilir",
+      "Hiçbir suretle satılamaz, gerekirse imha olunur",
+      "Kooperatiflere devredilebilir"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Hiçbir suretle satılamaz, gerekirse imha olunur seçeneğindeki içeriktir."
+  },
+  {
+    "q": "I. Dalyan sınırları içinde veya dışında Hazineye veya Devlete ait voli yerleri ayrıca kiraya verilmedikçe veya işletilmedikçe, bütün su ürünleri müstahsilleri buralardan serbestçe faydalanabilirler. Ancak dalyan sınırları içinde olup, mevsimine göre muayyen yerlerde kurulu bulunduğu zamanlarda dalyanın avlusu cihetindeki Hazineye veya Devlete ait voli yerlerinden faydalanma hakkı dalyan sahip veya kiracılarına aittir. II. Dalyanın arkasında kalan Hazineye ait voli yerlerinden dalyan kurulu bulunduğu zamanlarda dahi bütün su ürünleri müstahsilleri faydalanabilir. III. Bu madde hükmü, özel mülkiyetteki dalyanlarda da uygulanır. 1380 sayılı Su Ürünleri Kanununa göre dalyan civarındaki voli yerlerinden faydalanma kapsamında yukarıda verilen hükümlerden hangisi ya da hangileri doğrudur?",
+    "o": [
+      "Yalnız I",
+      "II ve III",
+      "I ve II",
+      "Yalnız II",
+      "I, II ve III"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükümleri birlikte değerlendirildiğinde doğru kombinasyon I ve II olur."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı gemilerinin barınma, av araç ve gereçlerini depolama, tamir ve bakımlarını yapma, avlanılan veya yetiştirilen ürünleri karaya çıkarma, depolama, kontrol, veri toplama gibi avcılık ve yetiştiricilikle ilgili hizmetlerin yerine getirilmesi amacıyla, ihtiyaç duyulan kıyılarda Tarım ve Orman Bakanlığının teklifiyle, hangi bakanlıkların uygun görüşü alınarak, Ulaştırma ve Altyapı Bakanlığınca balıkçı barınakları üst yapıları ile birlikte yapılır?",
+    "o": [
+      "Hazine ve Maliye Bakanlığı ile Çevre ve Şehircilik Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı ile Kültür ve Turizm Bakanlığının",
+      "İçişleri Bakanlığı ile Çevre ve Şehircilik Bakanlığı",
+      "Çevre ve Şehircilik Bakanlığı ile Kültür ve Turizm Bakanlığının",
+      "Milli Eğitim Bakanlığı ile Kültür ve Turizm Bakanlığının"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Çevre ve Şehircilik Bakanlığı ile Kültür ve Turizm Bakanlığının seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre patlayıcı ve zararlı maddeler kullanma yasağına ilişkin hükümlerin uygulanmasına dair esaslar hangi düzenleme ile belirlenir?",
+    "o": [
+      "Yönetmelik",
+      "Tebliğ",
+      "Kanun",
+      "Cumhurbaşkanlığı Kararnamesi",
+      "Genelge"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar Genelge ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre aşağıdakilerden hangisi Tarım Orman ve Köyişleri Bakanlığının izni olmadan kullanılamaz?",
+    "o": [
+      "Sepet ile avcılık",
+      "Ağ ile avcılık",
+      "Olta ile avcılık",
+      "Kepçe ile avcılık",
+      "Elektrik cereyanı ile avlanma"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Olta ile avcılık seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Denizlerde ve içsularda bulunan bitkiler ile hayvanlar ve bunların yumurtalarını (Kara Avcılığı Kanunu şümulüne giren hayvanlar hariç) \" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Su ürünleri",
+      "Deniz canlıları",
+      "Su ekosistemi",
+      "Balık stokları",
+      "Akuatik organizmalar"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Su ürünleri ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı barınaklarından yararlanma hakkı öncelikli olarak ticari balıkçılara ve su ürünleri yetiştiricilerine aittir. Balıkçı barınakları ve bunlara ait üst yapı tesislerinden faydalanma hakkı aşağıda verilenlerden hangisinin görüşü alınarak, Tarım ve Orman Bakanlığınca süresi on yıldan fazla olmamak üzere su ürünleri ile ilgili kooperatif veya kooperatif birliklerine ya da üretici birliklerine 2886 sayılı Devlet İhale Kanunu hükümlerine tabi olmaksızın pazarlıkla kiraya verilir?",
+    "o": [
+      "İçişleri Bakanlığı",
+      "Hazine ve Maliye Bakanlığı",
+      "Ulaştırma ve Altyapı Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Milli Emlak Genel Müdürlüğü"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Çalışma ve Sosyal Güvenlik Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre yetiştiricilikle ilgili usul ve esaslar Tarım ve Köyişleri Bakanlığınca çıkarılacak hangi mevzuat ile düzenlenir?",
+    "o": [
+      "Yönetmelik",
+      "Yönerge",
+      "Genel Emir",
+      "Tebliğ",
+      "Genelge"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar Tebliğ ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünleri yetiştiricilik tesisleri kurmak isteyenler, aşağıdakilerin hangisinden izin almak zorundadır?",
+    "o": [
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Hazine ve Maliye Bakanlığı",
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Devlet Su İşleri Genel Müdürlüğü"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Hazine ve Maliye Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre kamu tüzel kişilerine ait istihsal yerlerinin kiralanması kapsamında deniz ve içsularda veya bu yerlerden su alınarak karada su ürünleri yetiştiricilik bölgeleri belirlenirken Çevre ve Şehircilik Bakanlığı ile Kültür ve Turizm Bakanlığının uygun görüşü alınır. Bu kapsamda kaç gün içerisinde cevap verilmemesi halinde uygun görüş verilmiş sayılır?",
+    "o": [
+      "45",
+      "15",
+      "60",
+      "75",
+      "30"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmünde bu sorunun sayısal karşılığı 75 olarak düzenlenmiştir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre deniz ve içsularda veya bu yerlerden su alınarak karada yapılacak su ürünleri yetiştiricilik bölgeleri belirlenirken hangi kurumların uygun görüşü alınır?",
+    "o": [
+      "Belediyeler – İl tarım müdürlükleri",
+      "Çevre ve Şehircilik Bakanlığı – Kültür ve Turizm Bakanlığı",
+      "Tarım ve Orman Bakanlığı – Milli Emlak Genel Müdürlüğü",
+      "Sahil Güvenlik Komutanlığı – DSİ",
+      "İl özel idaresi – DSİ"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Tarım ve Orman Bakanlığı – Milli Emlak Genel Müdürlüğü seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre aşağıda verilenlerden hangisi su ürünleri ile ilgili her türlü araştırmaları yapmak ve yaptırmakla görevlidir?",
+    "o": [
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Devlet Su İşleri Genel Müdürlüğü",
+      "Hazine ve Maliye Bakanlığı"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap İçişleri Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Munhasıran göçmen balıkların istihsaline mahsus, dibe temas etmeksizin suyun ortasından veya yüzüne yakın kısımdan çekilen trol ağları ve bunlarla yapılan su ürünleri istihsalini\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Parakete",
+      "Orta su trolu",
+      "Kombine trol",
+      "Dip trolu",
+      "Gırgır ağı"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Orta su trolu ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı barınaklarının işletilmesine, denetlenmesine ve bu maddenin uygulanmasına ilişkin diğer usul ve esaslar Ulaştırma ve Altyapı Bakanlığı ile Çevre ve Şehircilik Bakanlığının uygun görüşü alınarak Tarım ve Orman Bakanlığınca çıkarılan hangi mevzuat ile belirlenir?",
+    "o": [
+      "Tüzük",
+      "Yönerge",
+      "Yönetmelik",
+      "Tebliğ",
+      "Genelge"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar Yönerge ile belirlenir."
+  },
+  {
+    "q": "\"Hazinenin veya Devlet Su İşleri Genel Müdürlüğünün mülkiyetinde veya Devletin hüküm ve tasarrufu altında bulunan deniz ve içsularda veya bu yerlerden su alınarak karada yapılacak su ürünleri üretim tesislerinde veya bu alanları ıslah etmek suretiyle projeye dayalı olarak yapılacak su ürünleri yetiştiriciliği yatırımlarında, ihtiyaç duyulan su ve su alanları ile deniz ve içsulardaki su ürünleri istihsal hakkının kira yöntem ve teknik şartları, süreleri ve yıllık bedelleri, üretim yerlerinin özellikleri dikkate alınarak Tarım ve Orman Bakanlığınca tespit edilir.\" 1380 sayılı Su Ürünleri Kanununa göre yukarıdaki yerler gerçek veya tüzel kişilere, gelirleri il özel idarelerine, il özel idareleri kaldırılan illerde ise yatırım izleme ve koordinasyon başkanlıklarına ait olmak üzere kim tarafından kiraya verilebilir?",
+    "o": [
+      "Cumhurbaşkanlığı",
+      "Ticaret Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "İçişleri Bakanlığı"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Ticaret Bakanlığı ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre genel, katma ve özel bütçeli idareler ile Devletin ve kamu iktisadi teşebbüslerinin hüküm ve tasarrufu altında bulunan su ürünleri üreme ve istihsal yerlerinin doldurulması, kurutulması, kısmen veya tamamen şeklinin değiştirilmesi veya buralardan kum, çakıl, taş çıkarılması, taş, toprak, moloz ve benzeri maddelerin dökülmesi gibi üreme ve istihsale olumsuz tesir edebilecek teşebbüslerde bulunulmadan önce kimin mütalaasına dayalı olarak ilgili mercilerden izin alınması zorunludur?",
+    "o": [
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Devlet Su İşleri Genel Müdürlüğü",
+      "Maliye Bakanlığı",
+      "Sulh hukuk mahkemesi",
+      "İl özel idaresi"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap İl özel idaresi seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Teşvik ve Himaye\" kapsamında gerçek ve tüzel kişilerin su ürünlerinin istihsal, muhafaza, işleme ve nakliyesine mütaallik faaliyet kollarına yapacakları yatırımlar hakkında 31/12/1960 gün ve 193 sayılı Gelir Vergisi Kanununa 202 sayılı Kanunun 16 ncı maddesi ile eklenen 8 inci bölümün ek 3 üncü maddesindeki yatırım indirimi nispeti yüzde kaç olarak uygulanır?",
+    "o": [
+      "% 70",
+      "% 60",
+      "% 100",
+      "% 80",
+      "% 90"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram % 70 ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre istihsal yerlerinin sınırlandırılması kapsamında aşağıda verilen hükümlerden hangisi yanlıştır?",
+    "o": [
+      "Tarım Orman ve Köyişleri Bakanlığınca zabıt ve kroki Resmi Gazete ile yayınlanmaz.",
+      "Bu zabıt ve krokilerin bir nüsnası Tarım Orman ve Köyişleri, bir nüshası Maliye Bakanlıklarına verilir. Bir nüshası da mahalli tapu dairesince hıfzolunur.",
+      "Bu maddede zikredilen heyette vazife gören memurların harcırahları ile bilirkişiler için mahkemece takdir edilecek ücret Tarım Orman ve Köyişleri Bakanlığı tarafından ödenir.",
+      "Deniz dalyanları ile voli yerlerinin ve mansapların sınırlarının tespitinde yukardaki heyete en yakın liman dairesi temsilcisi, Devlet Su İşlerinin mülkiyet ve işletmesindeki yerlerde ise bu Genel Müdürlük temsilcisi de katılır.",
+      "Devletin hüküm ve tasarrufu altında bulunan istihsal yerlerinin sınırları, Tarım Orman ve Köyişleri Bakanlığı temsilcisinin başkanlığında Maliye Bakanlığının tayin edeceği bir temsilci ile mahalli kadastro veya tapu memuru o yerin sulh hukuk hakimliğince tayin edilecek birisi araştırma müesseselerinden ve ikisi su ürünleri istihsalinden anlayan üç bilirkişiden kurulu bir heyet marifetiyle teamülen malüm ve muayyen bulunan veya kira mukavele veya şartnamelerinde gösterildiği veçhile üç nüsha zabıt ve krokiyle tespit olunur."
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne aykırı olan ifade Bu maddede zikredilen heyette vazife gören memurların harcırahları ile bilirkişiler için mahkemece takdir edilecek ücret Tarım Orman ve Köyişleri Bakanlığı tarafından ödenir. seçeneğidir."
+  },
+  {
+    "q": "I. Su ürünleri yetiştiricilik tesisleri kurmak isteyenler, Tarım ve Köyişleri Bakanlığından izin almak zorundadır. II. Su ürünleri yetiştiricilik tesislerine ilişkin izinler; bu tesislere ait projenin sağlık, memleket ekonomisi, seyrüsefer, teknik ve ilmî bakımlardan mahzur taşımaması halinde Tarım ve Köyişleri Bakanlığınca verilir. III. Yetiştiricilikle ilgili usul ve esaslar Tarım ve Köyişleri Bakanlığınca çıkarılacak yönetmelikle düzenlenir. 1380 sayılı Su Ürünleri Kanununa göre\" Yetiştiricilik\" kapsamında yukarıda verilen hükümlerden hangisi ya da hangileri doğrudur?",
+    "o": [
+      "Yalnız III",
+      "II ve III",
+      "I ve II",
+      "Yalnız I",
+      "I, II ve III"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Yalnız III ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre yasak vasıta ve usuller hangi amaçla ve hangi şartlarla kullanılabilir?",
+    "o": [
+      "Amatör balıkçılığı teşvik etmek amacıyla",
+      "İhracata yönelik olarak, belirlenen bölgelerde",
+      "İlmi ve teknik etüt ve araştırmalar için, muayyen yer ve müddetle",
+      "Kooperatif faaliyetleri kapsamında",
+      "Ticari üretimi artırmak amacıyla, süresiz"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap İlmi ve teknik etüt ve araştırmalar için, muayyen yer ve müddetle seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre Devletin hüküm ve tasarrufu altında bulunan dalyanların kiracıları veya işletenleri, aşağıdakilerden hangisi için dalyandan geçişe izin vermekle yükümlüdür?",
+    "o": [
+      "Her talep eden gerçek kişi",
+      "Rekreasyon amaçlı kullanıcılar",
+      "Turistik amaçlı gezi yapanlar",
+      "Ticari taşımacılık yapanlar",
+      "Belirli bir geçim veya istihsal faaliyetinin icabı olan iş ve sanat erbabı"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Ticari taşımacılık yapanlar seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre aşağıdakilerden hangisi su ürünleri avlanmasında yasaklanan yöntemler arasında yer alır?",
+    "o": [
+      "Misina ile avlanma",
+      "Olta ile avlanma",
+      "Bomba ve dinamit kullanımı",
+      "Kepçe ile avcılık",
+      "Ağ ile avcılık"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Bomba ve dinamit kullanımı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı barınaklarına ilişkin yönetmelik çıkarılırken aşağıdaki kurumlardan hangilerinin uygun görüşünün alınması zorunludur?",
+    "o": [
+      "Çevre ve Şehircilik Bakanlığı ile İçişleri Bakanlığı",
+      "Ulaştırma ve Altyapı Bakanlığı ile Çevre ve Şehircilik Bakanlığı",
+      "Tarım ve Orman Bakanlığı ile Valilikler",
+      "Cumhurbaşkanlığı ile ilgili Valilik",
+      "Ulaştırma ve Altyapı Bakanlığı ile Tarım ve Orman Bakanlığı"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Ulaştırma ve Altyapı Bakanlığı ile Çevre ve Şehircilik Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Bir veya mütaaddit sabit yahut muvakkat dalyan kurmaya elverişli istihsal sahalarını\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Su ürünleri istihsal alanı",
+      "Üretme ve yetiştirme yerleri",
+      "Voli yeri",
+      "Dalyan yeri",
+      "Avlanma sahası"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Üretme ve yetiştirme yerleri ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre akarsular üzerinde kurulmuş veya kurulacak olan baraj ve regülatör gibi su yapılarında su ürünlerinin geçmesine mahsus balık geçidi yapılması ve işler durumda bulundurulması zorunludur. Ancak yüksekliği kaç metreden fazla olan su yapılarında, masrafları müteşebbisçe karşılanmak üzere Tarım ve Orman Bakanlığınca yapılacak veya yaptırılacak bilimsel araştırma ve inceleme sonucu balık geçitlerinin işlevsiz olacağının anlaşılması halinde balık geçidi dışında farklı göç yapıları, asansörle taşıma, yapay ortamda üretilip kaynağa bırakma gibi tedbirler alınabilir?",
+    "o": [
+      "20",
+      "30",
+      "15",
+      "25",
+      "10"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmünde bu sorunun sayısal karşılığı 30 olarak düzenlenmiştir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Denizle irtibatı ve denizin etkisi altında bulunan gölleri\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Mansaplar",
+      "Lagünler",
+      "İstihsal yerleri",
+      "İstihsal vasıtaları",
+      "İçsular"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram İstihsal vasıtaları ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Tonajı ve adı ne olursa olsun, denizlerde ve içsularda su ürünleri araştırmasında, istihsalinde, naklinde, işlenmesinde kullanılan kayık, sandal, yelkenli, şat, salmavna gibi vasıtalarla buharlı veya motorlu bilümum yüzer vasıtaları\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Yüzer araç",
+      "Su ürünleri aracı",
+      "Deniz taşıtı",
+      "Gemi",
+      "Balıkçı teknesi"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Balıkçı teknesi ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre istihsal yerlerinin sınırlandırılması maddesinde zikredilen heyette vazife gören memurların harcırahları ile bilirkişiler için mahkemece takdir edilecek ücret kim tarafından ödenir?",
+    "o": [
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Devlet Su İşleri Genel Müdürlüğü",
+      "Maliye Bakanlığı",
+      "Sulh hukuk mahkemesi",
+      "İl özel idaresi"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki İl özel idaresi tarafından kullanılır."
+  },
+  {
+    "q": "I. Bomba, torpil, dinamit, kapsül ve benzeri patlayıcı maddeler öldürücü veya uyuşturucu maddeler, sönmemiş kireç ve Tarım Orman ve Köyişleri Bakanlığının müsaadesi alınmaksızın elektrik cereyanı, elektroşok ve hava tazyiki ile su ürünleri avlanması yasaktır. II. Tespit olunacak belli bir aydınlatma gücünü geçmemek üzere elektrik cereyanı ile aydınlatma ve münhasıran denizlerde olta ile avlanan su ürünlerinin denizden çıkarılmasında elektroşok usulünün uygulanması müsaadeye bağlı değildir. III. Bu maddenin uygulanmasına ait esaslar yönetmelikte gösterilir. 1380 sayılı Su Ürünleri Kanununa göre patlayıcı ve zararlı maddeler kullanma yasağı kapsamında yukarıda verilen hükümlerden hangisi ya da hangileri doğrudur?",
+    "o": [
+      "I ve II",
+      "Yalnız II",
+      "I,II ve III",
+      "Yalnız III",
+      "Yalnız I"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükümleri birlikte değerlendirildiğinde doğru kombinasyon Yalnız I olur."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre aşağıdakilerden hangisinin müsaadesi alınmadan akarsularda su ürünlerinin geçmesine veya yetişmesine engel olacak şekilde ağlar kurulması, bent, çit ve benzeri engeller yapılması yasaktır?",
+    "o": [
+      "Ticaret Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Hazine ve Maliye Bakanlığı"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Ticaret Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre kaynakların korunması amacıyla, su ürünlerinin yurt dışına çıkarılması ve canlı olarak yurt içine sokulması izne tabidir. Bu maddenin uygulanmasına ilişkin usul, esas ve istisnalar Tarım ve Orman Bakanlığı tarafından çıkarılan hangi mevzuat ile belirlenir?",
+    "o": [
+      "Genel Emir",
+      "Yönerge",
+      "Yönetmelik",
+      "Genelge",
+      "Tebliğ"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar Genel Emir ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Akarsuların göl veya denizlere açıldığı bölgelerde akarsuyun etkisi altında kalan su ürünleri istihsaline elverişli sahaları\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "İstihsal yerleri",
+      "Lagünler",
+      "İçsular",
+      "İstihsal vasıtaları",
+      "Mansaplar"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Mansaplar ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre kamu tüzel kişilerine ait istihsal yerlerinin kiralanması kapsamında aşağıda verilen hükümlerden hangisi yanlıştır?",
+    "o": [
+      "Bu yerler gerçek veya tüzel kişilere, gelirleri il özel idarelerine, il özel idareleri kaldırılan illerde ise yatırım izleme ve koordinasyon başkanlıklarına ait olmak üzere, Tarım ve Orman Bakanlığınca kiraya verilebilir.",
+      "Hazinenin veya Devlet Su İşleri Genel Müdürlüğünün mülkiyetinde veya Devletin hüküm ve tasarrufu altında bulunan deniz ve içsularda veya bu yerlerden su alınarak karada yapılacak su ürünleri üretim tesislerinde veya bu alanları ıslah etmek suretiyle projeye dayalı olarak yapılacak su ürünleri yetiştiriciliği yatırımlarında, ihtiyaç duyulan su ve su alanları ile deniz ve içsulardaki su ürünleri istihsal hakkının kira yöntem ve teknik şartları, süreleri ve yıllık bedelleri, üretim yerlerinin özellikleri dikkate alınarak Tarım ve Orman Bakanlığınca tespit edilir.",
+      "Bu yerlerden Tarım ve Orman Bakanlığınca belirlenen alanlarda avcılık yoluyla istihsal hakkı, başkalarına devredilmemesi şartıyla, öncelikle istihsalin yapılacağı yerde kurulan, üyeleri beş yıldan az olmamak üzere üretim bölgesinde ikamet eden, münhasıran su ürünleri istihsali veya pazarlaması ile iştigal eden su ürünleri kooperatiflerine veya birliklerine, bunların kiralamaması halinde ise gerçek veya tüzel kişilere Tarım ve Orman Bakanlığınca kiralanabilir.",
+      "Deniz ve içsularda veya bu yerlerden su alınarak karada su ürünleri yetiştiricilik bölgeleri belirlenirken Çevre ve Şehircilik Bakanlığı ile Kültür ve Turizm Bakanlığının uygun görüşü alınır; otuz gün içerisinde cevap verilmemesi halinde uygun görüş verilmiş sayılır.",
+      "Projeli olarak yapılacak yatırımlarda ihtiyaç duyulacak karasal alanların kiralama işlemleri bu madde hükümleri çerçevesinde; taşınmazın tescilli olması durumunda maliki kuruluş tarafından, Devletin hüküm ve tasarrufu altındaki alanlardan olması durumunda ise Milli Emlak Genel Müdürlüğü birimleri marifetiyle yapılır."
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne aykırı olan ifade Projeli olarak yapılacak yatırımlarda ihtiyaç duyulacak karasal alanların kiralama işlemleri bu madde hükümleri çerçevesinde; taşınmazın tescilli olması durumunda maliki kuruluş tarafından, Devletin hüküm ve tasarrufu altındaki alanlardan olması durumunda ise Milli Emlak Genel Müdürlüğü birimleri marifetiyle yapılır. seçeneğidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre yetiştiricilikle ilgili usul ve esaslar kim tarafından çıkarılacak yönetmelikle düzenlenir?",
+    "o": [
+      "Hazine ve Maliye Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Cumhurbaşkanlığı"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki İçişleri Bakanlığı tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Deniz ve içsularda su ürünleri istihsaline elverişli, sahile bitişik ve sınırları belli su sahaları\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Sabit dalyan",
+      "Voli yeri",
+      "Muvakkat dalyan",
+      "Dalyan yeri",
+      "Lagünler"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Voli yeri ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Su ürünlerini üretmek ve yetiştirmek için yapılan tesisleri\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Sabit dalyan",
+      "Muvakkat dalyan (Yüzer)",
+      "Dalyan yeri",
+      "Üretme ve yetiştirme yerleri",
+      "Voli yeri"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Sabit dalyan ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Bir veya daha çok gemiler ile çekilmek suretiyle zemin üzerinde sürütülerek dip su ürünlerini istihsale mahsus trol ağları ve bu ağlarla yapılan su ürünleri istihsalini\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "Dip trolu",
+      "Parakete",
+      "Orta su trolu",
+      "Kombine trol",
+      "Gırgır ağı"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram Dip trolu ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre aşağıda verilenlerden hangisi su ürünleri istihsali ile uğraşanların mesleki bilgi ve görgülerini artırmak maksadiyle, diğer bakanlıklar ile de işbirliği yaparak uzmanlar idaresinde ücretli veya ücretsiz kurslar ve meslek okulları açabilir, propaganda eğitim ve öğretim için lüzumlu tedbirleri alır?",
+    "o": [
+      "İçişleri Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Tarım Orman ve Köyişleri Bakanlığı",
+      "Hazine ve Maliye Bakanlığı",
+      "Milli Eğitim Bakanlığı"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Hazine ve Maliye Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre Medeni Kanunun yürürlüğe girmesinden evvel sahipleri adına tapuya tescil edilmiş olan dalyan ve voli yerleri (Olağanüstü sebeplerin devam ettiği müddet içindeki inkıtalar hariç olmak üzere) sahipleri tarafından bizzat veya kiraya verilmek suretiyle devamlı olarak kaç sene işletilmediği veya terk edildiği takdirde kamulaştırılır?",
+    "o": [
+      "5",
+      "7",
+      "6",
+      "4",
+      "3"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap 6 seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre ticari amaçlı su ürünleri avcılık ya da yetiştiricilik faaliyetinde kullanılacak gemiler ve diğer su vasıtaları için ruhsat tezkeresi veya izin verme yetkisi hangi kuruma aittir?",
+    "o": [
+      "Denizcilik Genel Müdürlüğü",
+      "Sahil Güvenlik Komutanlığı",
+      "Çevre, Şehircilik ve İklim Değişikliği Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "Ulaştırma ve Altyapı Bakanlığı"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Tarım ve Orman Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre kamu tüzel kişilerine ait istihsal yerlerinin kiralanması kapsamında istihsal hakkı kiraya verilen alanlarda yapılacak ticari, amatör, rekreasyonel amaçlı avcılık ve yetiştiricilik faaliyetleri ile istihsal hakkı kiraya verilen türler ile ilgili usul ve esaslar kim tarafından çıkarılan yönetmelikle belirlenir?",
+    "o": [
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Cumhurbaşkanlığı",
+      "Ticaret Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Tarım ve Orman Bakanlığı"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki Cumhurbaşkanlığı tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre \"Su ürünlerini istihsale elverişli olan ve içinde veya üzerinde her hangi bir istihsal vasıtası kurulabilen, kullanılabilen su sahalarını\" ifade eden terim aşağıdakilerden hangisidir?",
+    "o": [
+      "İstihsal vasıtaları",
+      "Mansaplar",
+      "İstihsal yerleri",
+      "Lagünler",
+      "İçsular"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunundaki tanıma göre doğru kavram İstihsal vasıtaları ifadesidir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre ruhsat tezkerelerinin veya izinlerin verilmesine, yenilenmesine, süresine, iptaline ve ruhsat kod numarasının gemiye yazılışına, türlerin avlanma miktarlarına, bölgesel avcılığa ve av araçlarına göre verilecek izinlere, amatör amaçlı avcılık faaliyetlerinde türlere, yerlere ve yöntemlere göre belirlenen esaslar dahilinde getirilecek sınırlamalar veya ruhsata tabi olacaklar ile yerli ve yabancı uyruklu kişilerce yapılacak amatör avcılığa ve bu maddenin uygulanmasına ilişkin usul ve esaslar Tarım ve Orman Bakanlığınca çıkarılan hangi mevzuat ile belirlenir?",
+    "o": [
+      "Genelge",
+      "İçtüzük",
+      "Tüzük",
+      "Yönetmelik",
+      "Yönerge"
+    ],
+    "c": 0,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar Yönetmelik ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre yasak vasıta ve usullerin istisnaen kullanılmasına kim izin verebilir?",
+    "o": [
+      "Valilikler",
+      "İl Tarım Müdürlükleri",
+      "Tarım Orman ve Köyişleri Bakanlıkları",
+      "Çevre, Şehircilik ve İklim Değişikliği Bakanlığı",
+      "Devlet Su İşleri Genel Müdürlüğü"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Tarım Orman ve Köyişleri Bakanlıkları seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre kamu tüzel kişilerine ait istihsal yerlerinin kiralanması kapsamında istihsal hakkı kiraya verilen alanlarda yapılacak ticari, amatör, rekreasyonel amaçlı avcılık ve yetiştiricilik faaliyetleri ile istihsal hakkı kiraya verilen türler ile ilgili usul ve esaslar Tarım ve Orman Bakanlığı tarafından çıkarılan hangi mevzuat ile belirlenir?",
+    "o": [
+      "Tebliğ",
+      "Yönerge",
+      "Genelge",
+      "Yönetmelik",
+      "Genel emir"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar Tebliğ ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı gemilerinin barınma, av araç ve gereçlerini depolama, tamir ve bakımlarını yapma, avlanılan veya yetiştirilen ürünleri karaya çıkarma, depolama, kontrol, veri toplama gibi avcılık ve yetiştiricilikle ilgili hizmetlerin yerine getirilmesi amacıyla, ihtiyaç duyulan kıyılarda Tarım ve Orman Bakanlığının teklifiyle, Çevre ve Şehircilik Bakanlığı ile Kültür ve Turizm Bakanlığının uygun görüşü alınarak, hangi bakanlıkça balıkçı barınakları üst yapıları ile birlikte yapılır?",
+    "o": [
+      "Milli Eğitim Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Hazine ve Maliye Bakanlığı",
+      "Ulaştırma ve Altyapı Bakanlığı"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap İçişleri Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre kaynakların korunması amacıyla, su ürünlerinin yurt dışına çıkarılması ve canlı olarak yurt içine sokulması izne tabidir. Bu maddenin uygulanmasına ilişkin usul, esas ve istisnalar kim tarafından çıkarılan yönetmelikle belirlenir?",
+    "o": [
+      "Sanayi ve Teknoloji Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "Cumhurbaşkanlığı"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki Sanayi ve Teknoloji Bakanlığı tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünleri istihsalinde kullanılan istihsal vasıtalarının haiz olmaları gereken asgari vasıf ve şartlar ile bunların kullanma usul ve esasları sağlık, memleket ekonomisi, seyrüsefer, teknik ve bilimsel yönlerden bölgeler, mevsimler, zamanlar, su ürünleri cinsleri, çeşitleri, ağırlık, irilik, büyüklük gibi vasıflar bakımından konulacak yasak, sınırlama ve yükümlülükler hangi mevzuat ile düzenlenir?",
+    "o": [
+      "Yönetmelik",
+      "Tebliğ",
+      "Cumhurbaşkanlığı Kararnamesi",
+      "Tüzük",
+      "Genelge"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar Genelge ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı barınaklarının işletilmesine, denetlenmesine ve uygulanmasına ilişkin usul ve esaslar hangi makam tarafından çıkarılan yönetmelikle belirlenir?",
+    "o": [
+      "Çevre ve Şehircilik Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "Cumhurbaşkanlığı",
+      "İçişleri Bakanlığı",
+      "Ulaştırma ve Altyapı Bakanlığı"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Çevre ve Şehircilik Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre Tarım ve Orman Bakanlığınca belirlenen alanlarda avcılık yoluyla istihsal hakkı, başkalarına devredilmemesi şartıyla, öncelikle istihsalin yapılacağı yerde kurulan, üyeleri beş yıldan az olmamak üzere üretim bölgesinde ikamet eden, münhasıran su ürünleri istihsali veya pazarlaması ile iştigal eden su ürünleri kooperatiflerine veya birliklerine, bunların kiralamaması halinde ise gerçek veya tüzel kişilere kim tarafından kiralanabilir?",
+    "o": [
+      "Ticaret Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "İçişleri Bakanlığı",
+      "Cumhurbaşkanlığı"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki Tarım ve Orman Bakanlığı tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre balıkçı gemilerinin barınma, av araç ve gereçlerini depolama, tamir ve bakımlarını yapma, avlanılan veya yetiştirilen ürünleri karaya çıkarma, depolama, kontrol, veri toplama gibi avcılık ve yetiştiricilikle ilgili hizmetlerin yerine getirilmesi amacıyla, ihtiyaç duyulan kıyılarda kimin teklifiyle, Çevre ve Şehircilik Bakanlığı ile Kültür ve Turizm Bakanlığının uygun görüşü alınarak, Ulaştırma ve Altyapı Bakanlığınca balıkçı barınakları üst yapıları ile birlikte yapılır?",
+    "o": [
+      "İçişleri Bakanlığı",
+      "Milli Eğitim Bakanlığı",
+      "Tarım ve Orman Bakanlığı",
+      "Hazine ve Maliye Bakanlığı",
+      "Çalışma ve Sosyal Güvenlik Bakanlığı"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap İçişleri Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünleri ruhsat tezkereleri ve izinlerine ilişkin olarak; verilme, yenilenme, süre, iptal ve ruhsat kod numarasının gemiye yazılışına dair usul ve esaslar hangi düzenleme ile belirlenir?",
+    "o": [
+      "İl tarım müdürlüğü talimatları",
+      "Su Ürünleri Kanunu",
+      "Bakanlık genelgesi",
+      "Tarım ve Orman Bakanlığınca çıkarılan yönetmelik",
+      "Çevre Kanunu"
+    ],
+    "c": 1,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar İl tarım müdürlüğü talimatları ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre akar sularda engellemeler yapılması, yasağı kapsamındaki balık geçidi, balık asansörü ve diğer yapılara ilişkin projenin onayı, kontrollüğü ve kabulü inşaat tekniği açısından kim tarafından yapılır veya yaptırılır?",
+    "o": [
+      "Mülki Amirlik",
+      "İl Özel İdaresi",
+      "Devlet Su İşleri Genel Müdürlüğü",
+      "Ulaştırma ve Altyapı Bakanlığı",
+      "Çevre, Şehircilik ve İklim Değişikliği Bakanlığı"
+    ],
+    "c": 2,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre bu yetki Mülki Amirlik tarafından kullanılır."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünleri veya bunları istihlak edenlerin veya kullananların sağlığına veyahut istihsal vasıtalarına malzeme, teçhizat, alet ve edevata zarar veren maddelerin içsulara ve denizlerdeki istihsal yerlerine veya civarlarına dökülmesi veya döküleceği şekilde tesisat yapılması yasaktır. Bu kapsamda hangi maddelerin dökülmesinin yasak olduğu hangi mevzuat ile gösterilir?",
+    "o": [
+      "Tüzük",
+      "Genelge",
+      "Yönetmelik",
+      "Tebliğ",
+      "Cumhurbaşkanlığı Kararnamesi"
+    ],
+    "c": 3,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu kapsamında usul ve esaslar Yönetmelik ile belirlenir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanununa göre su ürünleri müstahsilleri ile su ürünleriyle iştigal edenlerin teftiş ve kontrolü hangi birim vasıtasıyla yapılır?",
+    "o": [
+      "Sahil Güvenlik Komutanlığı",
+      "Tarım Orman ve Köyişleri Bakanlığı Teftiş Kurulu",
+      "İl Özel İdareleri",
+      "Çevre ve Şehircilik Bakanlığı",
+      "Devlet Su İşleri Genel Müdürlüğü"
+    ],
+    "c": 4,
+    "e": "Açıklama: 1380 sayılı Su Ürünleri Kanunu hükmüne göre doğru cevap Sahil Güvenlik Komutanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri alanında tebliğlerin sıklıkla kullanılmasının temel gerekçesi aşağıdakilerden hangisidir?",
+    "o": [
+      "Hızla değişen teknik ve biyolojik koşullara uyum sağlamak",
+      "Yargı denetiminden kaçınmak",
+      "Yerel idareleri devre dışı bırakmak",
+      "Kanunların yetersiz olması",
+      "Uluslararası yükümlülükleri kaldırmak"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Hızla değişen teknik ve biyolojik koşullara uyum sağlamak seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "İzin ve ruhsat süreçlerinde ön denetim yapılmasının temel nedeni aşağıdakilerden hangisidir?",
+    "o": [
+      "Faaliyetlerin hızlandırılması",
+      "Hukuka aykırı faaliyetlerin başlamadan engellenmesi",
+      "Denetim yükünün azaltılması",
+      "Yatırımcı sayısının artırılması",
+      "Uluslararası rekabetin artırılması"
+    ],
+    "c": 2,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Denetim yükünün azaltılması seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Yetiştiricilik izin belgesinin alınmasının temel nedeni aşağıdakilerden hangisidir?",
+    "o": [
+      "Avcılık faaliyetlerine katılmak",
+      "Pazarlama hakkı elde etmek",
+      "Faaliyetin çevresel ve teknik açıdan uygunluğunu güvence altına almak",
+      "Üretimin fiilen başlamasını sağlamak",
+      "Denetim yükümlülüklerini ortadan kaldırmak"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Pazarlama hakkı elde etmek seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Asgari avlanabilir boy sınırlamasının getirilmesi aşağıdakilerden hangisini sağlamaya yöneliktir?",
+    "o": [
+      "Bireylerin en az bir kez üreme şansı bulmasını",
+      "Pazara sunulan ürün miktarının azaltılmasını",
+      "Avcılığın teknik olarak kolaylaştırılmasını",
+      "Avcılık maliyetlerinin düşürülmesini",
+      "Av veriminin kısa vadede artırılmasını"
+    ],
+    "c": 2,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Bireylerin en az bir kez üreme şansı bulmasını seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Türkiyeʼde su ürünleri mevzuatının sistematik bir yapıya kavuşması açısından dönüm noktası olan düzenleme aşağıdakilerden hangisidir?",
+    "o": [
+      "Av araçlarına ilişkin sınırlamaların getirilmesi",
+      "1380 sayılı Su Ürünleri Kanunuʼnun yürürlüğe girmesi",
+      "İlk tebliğlerin yayımlanması",
+      "Yerel idarelere yetki verilmesi",
+      "Uluslararası anlaşmalara taraf olunması"
+    ],
+    "c": 4,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Yerel idarelere yetki verilmesi seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Ruhsat iptali yaptırımının uygulanması aşağıdakilerden hangisini ifade eder?",
+    "o": [
+      "Denetimlerin sona ermesini",
+      "Geçici faaliyet durdurmayı",
+      "Para cezasının ertelenmesini",
+      "Av yasaklarının kaldırılmasını",
+      "Faaliyetin hukuken sona erdirilmesini"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Geçici faaliyet durdurmayı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Toptan satış yerlerinde denetim yapılmasının temel gerekçesi aşağıdakilerden hangisidir?",
+    "o": [
+      "Ürünlerin yasal, izlenebilir ve hijyenik olmasını sağlamak",
+      "Satışları tamamen durdurmak",
+      "Üretimi azaltmak",
+      "Yalnızca fiyatları kontrol etmek",
+      "Rekabeti sınırlamak"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Ürünlerin yasal, izlenebilir ve hijyenik olmasını sağlamak seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Belirli alanlarda avcılığın yasaklanması aşağıdakilerden hangisini hedefler?",
+    "o": [
+      "Av araçlarının çeşitliliğini azaltmayı",
+      "Avcı sayısını artırmayı",
+      "Denetimleri kaldırmayı",
+      "Hassas ekosistemlerin korunmasını",
+      "Ekonomik faaliyetleri durdurmayı"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Denetimleri kaldırmayı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri denetimlerinde kolluk kuvvetlerinin görev almasının temel nedeni aşağıdakilerden hangisidir?",
+    "o": [
+      "Yargı yetkisi kullanmak",
+      "Mevzuat hazırlamak",
+      "Bakanlığın denetim faaliyetlerine destek sağlamak",
+      "Ruhsatlandırma yapmak",
+      "Av yasaklarını belirlemek"
+    ],
+    "c": 2,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Mevzuat hazırlamak seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanunu kapsamında temel yetkili idari otorite aşağıdakilerden hangisidir?",
+    "o": [
+      "Çevre kuruluşları",
+      "Kolluk kuvvetleri",
+      "Tarım ve Orman Bakanlığı",
+      "Belediyeler",
+      "İl özel idareleri"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Tarım ve Orman Bakanlığı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri mevzuatında av yasaklarının getirilmesinin temel hukuki gerekçesi aşağıdakilerden hangisidir?",
+    "o": [
+      "Piyasa fiyatlarının yükseltilmesi",
+      "Avcılık faaliyetlerinin tamamen kaldırılması",
+      "Yetiştiriciliğin zorunlu hâle getirilmesi",
+      "Uluslararası ticaretin sınırlandırılması",
+      "Balık stoklarının korunması ve devamlılığının sağlanması"
+    ],
+    "c": 4,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Piyasa fiyatlarının yükseltilmesi seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Yetiştiricilik tesislerinde su kalitesi ve atık yönetiminin mevzuatla düzenlenmesinin temel amacı aşağıdakilerden hangisidir?",
+    "o": [
+      "Çevresel kirliliğin önlenmesi",
+      "Ekosistem üzerindeki baskıyı artırmak",
+      "Üretim maliyetlerini yükseltmek",
+      "Avcılığı teşvik etmek",
+      "Denetim süreçlerini uzatmak"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Denetim süreçlerini uzatmak seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Su ürünleri mevzuatı kapsamında yetiştiricilik faaliyetlerinin özel düzenlemelere tabi tutulmasının temel nedeni aşağıdakilerden hangisidir?",
+    "o": [
+      "Yerel yönetimlere sınırsız yetki vermek",
+      "Avcılığı tamamen ortadan kaldırmak",
+      "Sadece ekonomik kazancı artırmak",
+      "Denetimleri azaltmak",
+      "Üretimin kontrollü ve planlı biçimde yürütülmesini sağlamak"
+    ],
+    "c": 4,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Yerel yönetimlere sınırsız yetki vermek seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Akuakültür faaliyetlerinin hukuki niteliği aşağıdakilerden hangisiyle doğru şekilde ifade edilir?",
+    "o": [
+      "Doğal stokların serbestçe kullanılması",
+      "Avcılık faaliyetlerinin bir türü olması",
+      "Mevsimsel yasaklara tabi olmaması",
+      "Kontrollü ortamlarda insan müdahalesiyle üretim yapılması",
+      "Denetim dışı ekonomik faaliyet sayılması"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Kontrollü ortamlarda insan müdahalesiyle üretim yapılması seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri mevzuatı kapsamında \"su ürünleri\" kavramının kapsamına giren varlıkların belirlenmesinde temel ölçüt aşağıdakilerden hangisidir?",
+    "o": [
+      "Yalnızca denizlerde bulunması",
+      "Endüstriyel işleme tabi tutulabilmesi",
+      "Sadece insan tüketimine doğrudan uygun olması",
+      "İhracata konu edilebilmesi",
+      "Doğal veya yapay su ortamlarında yaşaması ve ekonomik değer taşıması"
+    ],
+    "c": 4,
+    "e": "Açıklama: İlgili mevzuatndeki tanıma göre doğru kavram Yalnızca denizlerde bulunması ifadesidir."
+  },
+  {
+    "q": "Su ürünlerinin bir yerden başka bir yere taşınmasında nakil belgesi aranmasının temel amacı aşağıdakilerden hangisidir?",
+    "o": [
+      "Taşıma maliyetlerini artırmak",
+      "Pazarlama sürecini yavaşlatmak",
+      "Ürünlerin kaynağının ve yasal durumunun izlenmesini sağlamak",
+      "Denetim süreçlerini uzatmak",
+      "Ticari faaliyetleri sınırlamak"
+    ],
+    "c": 2,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Denetim süreçlerini uzatmak seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Av araç ve gereçlerine ilişkin sınırlamaların getirilmesinin temel amacı aşağıdakilerden hangisidir?",
+    "o": [
+      "Tahrip edici av yöntemlerinin önlenmesi",
+      "Yalnızca büyük ölçekli avcılığı teşvik etmek",
+      "Avcılığın tamamen yasaklanması",
+      "Denetim yükünün azaltılması",
+      "Avcılık maliyetlerinin yükseltilmesi"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Tahrip edici av yöntemlerinin önlenmesi seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Su ürünleri hukuku kapsamında \"avcılık\" faaliyetinin ayırt edici unsuru aşağıdakilerden hangisidir?",
+    "o": [
+      "Ürünlerin pazarlanması",
+      "Su ürünlerinin doğal ortamından yakalanması",
+      "Ürünlerin işlenmesi",
+      "Depolama faaliyetlerinin yürütülmesi",
+      "Kontrollü üretim yapılması"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuatndeki tanıma göre doğru kavram Ürünlerin işlenmesi ifadesidir."
+  },
+  {
+    "q": "Bazı su ürünlerinin tamamen koruma altına alınmasının temel gerekçesi aşağıdakilerden hangisidir?",
+    "o": [
+      "Yetiştiriciliğe uygun olmamaları",
+      "Avcılığın denetlenememesi",
+      "Tüketici talebinin azalması",
+      "Neslinin tehlike altında bulunması",
+      "Ekonomik değerlerinin düşük olması"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Neslinin tehlike altında bulunması seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanunuʼnun kapsamının geniş tutulmasının temel sonucu aşağıdakilerden hangisidir?",
+    "o": [
+      "Uluslararası mevzuatın doğrudan uygulanması",
+      "Denetim yetkisinin kaldırılması",
+      "Üretimden pazarlamaya kadar tüm aşamaların düzenlenmesi",
+      "Yalnızca avcılık faaliyetlerinin düzenlenmesi",
+      "Sadece denizlerde geçerli olması"
+    ],
+    "c": 2,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Üretimden pazarlamaya kadar tüm aşamaların düzenlenmesi seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanunuʼnun sadece bugünü değil geleceği de düzenleyen bir anlayışa sahip olması aşağıdakilerden hangisini ifade eder?",
+    "o": [
+      "Uzun vadeli ve koruyucu bir hukuk politikasını",
+      "Avcılığın tamamen yasaklanmasını",
+      "Kaynakların sınırsız kabul edilmesini",
+      "Geçici idari önlemleri",
+      "Kısa vadeli ekonomik planlamayı"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Kısa vadeli ekonomik planlamayı seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri mevzuatında idari yaptırımların temel amacı aşağıdakilerden hangisidir?",
+    "o": [
+      "Yalnızca gelir elde etmek",
+      "Ekonomik faaliyeti tamamen durdurmak",
+      "Avcılığı yasaklamak",
+      "Mevzuata aykırı fiilleri önlemek ve caydırıcılığı sağlamak",
+      "Denetim görevini azaltmak"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Yalnızca gelir elde etmek seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Avcılık düzenlemeleri ve yasaklarının bütüncül amacı aşağıdakilerden hangisidir?",
+    "o": [
+      "Avcı sayısını sınırlamak",
+      "Avcılığı tamamen ortadan kaldırmak",
+      "Yalnızca ekonomik kazancı artırmak",
+      "Mevsimsel faaliyetleri azaltmak",
+      "Doğal denge ile insan faaliyeti arasında uyum sağlamak"
+    ],
+    "c": 4,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Doğal denge ile insan faaliyeti arasında uyum sağlamak seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Yetiştiricilik tesisleri için Çevresel Etki Değerlendirmesi sürecinin öngörülmesinin temel amacı aşağıdakilerden hangisidir?",
+    "o": [
+      "Yatırım süresini uzatmak",
+      "Çevre üzerindeki olası etkileri önceden belirlemek",
+      "Denetimleri azaltmak",
+      "Üretim kapasitesini sınırlamak",
+      "İdari maliyetleri artırmak"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Denetimleri azaltmak seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Avcılığa ilişkin yasakların çoğunlukla tebliğler yoluyla belirlenmesinin temel nedeni aşağıdakilerden hangisidir?",
+    "o": [
+      "Uluslararası baskıların azaltılması",
+      "Yargı denetiminin kaldırılması",
+      "Kanunların yetersiz olması",
+      "Yerel idarelerin yetkisinin artırılması",
+      "Bilimsel ve çevresel koşulların sık değişmesi"
+    ],
+    "c": 4,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Yargı denetiminin kaldırılması seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "1380 sayılı Su Ürünleri Kanunuʼnun gelecek nesilleri gözeten bir anlayış benimsemesi aşağıdaki ilkelerden hangisiyle doğrudan ilişkilidir?",
+    "o": [
+      "Sürdürülebilirlik",
+      "Yerinden yönetim",
+      "Ekonomik liberalizm",
+      "İdari özerklik",
+      "Serbest piyasa"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Ekonomik liberalizm seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri mevzuatında \"stok\" kavramının korunmasının temel nedeni aşağıdakilerden hangisidir?",
+    "o": [
+      "İhracat gelirlerini artırmak",
+      "Üretim maliyetlerini düşürmek",
+      "Piyasa fiyatlarını dengelemek",
+      "Türlerin biyolojik devamlılığını sağlamak",
+      "Av araçlarının kullanımını serbestleştirmek"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuatndeki tanıma göre doğru kavram Av araçlarının kullanımını serbestleştirmek ifadesidir."
+  },
+  {
+    "q": "Su ürünleri mevzuatında yönetmeliklerin temel işlevi aşağıdakilerden hangisidir?",
+    "o": [
+      "Yargı kararlarını bağlayıcı hâle getirmek",
+      "Kanunda yer alan genel hükümlerin uygulanmasını ayrıntılandırmak",
+      "Uluslararası sözleşmeleri doğrudan yürürlüğe koymak",
+      "Yerel idarelere sınırsız yetki vermek",
+      "Kanunun yerine geçmek"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Yargı kararlarını bağlayıcı hâle getirmek seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Yetiştiricilik mevzuatında biyogüvenlik önlemlerine yer verilmesinin temel gerekçesi aşağıdakilerden hangisidir?",
+    "o": [
+      "Hastalıkların yayılmasının önlenmesi",
+      "Denetimlerin kaldırılması",
+      "Pazara arzın sınırlandırılması",
+      "Yetiştiricilik alanlarının genişletilmesi",
+      "Üretimin tamamen durdurulması"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Hastalıkların yayılmasının önlenmesi seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Su ürünleri yönetmeliklerinin ülke genelinde bağlayıcı olmasının temel sonucu aşağıdakilerden hangisidir?",
+    "o": [
+      "Yerel farklılıkların tamamen yok edilmesi",
+      "İdari yargının devre dışı bırakılması",
+      "Kaynakların serbestçe kullanılması",
+      "Uygulamada birlik ve eşitliğin sağlanması",
+      "Denetimlerin kaldırılması"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Uygulamada birlik ve eşitliğin sağlanması seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Su ürünleri faaliyetlerinin denetlenmesinde temel yetkili idarenin Tarım ve Orman Bakanlığı olması aşağıdakilerden hangisine dayanır?",
+    "o": [
+      "Yerel idarelerin talebine",
+      "Uzmanlık ve teknik kapasite gereksinimine",
+      "Yargı organlarının yönlendirmesine",
+      "Uluslararası kuruluşların kararlarına",
+      "Özel sektör taleplerine"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Uzmanlık ve teknik kapasite gereksinimine seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri faaliyetlerinin ruhsata bağlanmasının temel hukuki amacı aşağıdakilerden hangisidir?",
+    "o": [
+      "Yerel yönetimlerin yetkisiz bırakılması",
+      "Serbest piyasa koşullarının ortadan kaldırılması",
+      "Faaliyetlerin kayıt altına alınarak kamu denetimine açık hâle getirilmesi",
+      "Avcılığın tamamen yasaklanması",
+      "Ekonomik faaliyetlerin sınırlandırılması"
+    ],
+    "c": 2,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Yerel yönetimlerin yetkisiz bırakılması seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri mevzuatında farklı yönetmeliklerin bulunması aşağıdakilerden hangisini sağlamayı amaçlar?",
+    "o": [
+      "Yetki çatışması yaratmayı",
+      "Mevzuat karmaşası oluşturmayı",
+      "Tek tip uygulamayı engellemeyi",
+      "Faaliyet alanlarına özgü ayrıntılı düzenleme yapılmasını",
+      "Denetim sorumluluğunu azaltmayı"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Tek tip uygulamayı engellemeyi seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Av yasaklarının etkinliğinin sağlanmasında denetim faaliyetlerinin önemi aşağıdakilerden hangisiyle açıklanır?",
+    "o": [
+      "Yasakların gönüllülüğe dayanması",
+      "Kuralların fiilen uygulanmasını sağlaması",
+      "Avcılık faaliyetlerinin tamamen serbest olması",
+      "Ekonomik teşviklerin artırılması",
+      "Denetimin yalnızca yargı organlarına ait olması"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Ekonomik teşviklerin artırılması seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Avcılık ruhsat tezkeresinin zorunlu tutulmasının temel gerekçesi aşağıdakilerden hangisidir?",
+    "o": [
+      "Avcılık faaliyetlerini izlenebilir ve denetlenebilir kılmak",
+      "Av araçlarının serbest kullanımını sağlamak",
+      "Yetiştiriciliği teşvik etmek",
+      "Pazarlama faaliyetlerini düzenlemek",
+      "Avlanma miktarını artırmak"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Av araçlarının serbest kullanımını sağlamak seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Su ürünleri yönetmeliklerinin uygulanmasında Tarım ve Orman Bakanlığının rolü aşağıdakilerden hangisiyle doğru şekilde ifade edilir?",
+    "o": [
+      "Uluslararası kuruluşlara bağlı hareket etmek",
+      "Yargısal denetim yürütmek",
+      "Yerel yönetimlerin kararlarını onaylamak",
+      "Düzenleme, uygulama ve denetim yetkilerini birlikte kullanmak",
+      "Sadece danışma organı olarak görev yapmak"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Düzenleme, uygulama ve denetim yetkilerini birlikte kullanmak seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Bir su ürünleri yetiştiricilik tesisinin kurulabilmesi için aranan temel hukuki koşul aşağıdakilerden hangisidir?",
+    "o": [
+      "Sadece yerel yönetim onayı",
+      "Pazarlama sözleşmesi yapılması",
+      "Avcılık ruhsatı alınması",
+      "Üretime fiilen başlanması",
+      "Proje onayı ve gerekli izin süreçlerinin tamamlanması"
+    ],
+    "c": 4,
+    "e": "Açıklama: İlgili mevzuat hükmüne göre doğru cevap Pazarlama sözleşmesi yapılması seçeneğindeki içeriktir."
+  },
+  {
+    "q": "Su ürünleri mevzuatının temel amaçları arasında yer alan \"sürdürülebilirlik\" ilkesi aşağıdakilerden hangisini ifade eder?",
+    "o": [
+      "Kaynakların gelecek nesilleri de gözeterek kullanılmasını",
+      "Avcılığın tamamen serbest bırakılmasını",
+      "Üretimin kısa vadede artırılmasını",
+      "Denetimlerin yerel idarelere devredilmesini",
+      "Yalnızca yetiştiriciliğin teşvik edilmesini"
+    ],
+    "c": 0,
+    "e": "Açıklama: İlgili mevzuatndeki tanıma göre doğru kavram Avcılığın tamamen serbest bırakılmasını ifadesidir."
+  },
+  {
+    "q": "Belirli dönemlerde avcılığın yasaklanmasının temel nedeni aşağıdakilerden hangisidir?",
+    "o": [
+      "Pazarlama faaliyetlerini durdurmak",
+      "Türlerin üreme dönemlerini korumak",
+      "Ekonomik faaliyetleri yavaşlatmak",
+      "Denetim faaliyetlerini azaltmak",
+      "Av araçlarının kullanımını sınırlamak"
+    ],
+    "c": 1,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Türlerin üreme dönemlerini korumak seçeneğinde özetlenmiştir."
+  },
+  {
+    "q": "Su Ürünleri Yetiştiriciliği Yönetmeliğiʼnde çevresel etkilere özel önem verilmesinin temel nedeni aşağıdakilerden hangisidir?",
+    "o": [
+      "Yatırımcı sayısını sınırlamak",
+      "Ekonomik büyümeyi yavaşlatmak",
+      "Avcılık faaliyetlerini artırmak",
+      "Ekosistem dengesinin bozulma riskini azaltmak",
+      "Denetimleri ortadan kaldırmak"
+    ],
+    "c": 3,
+    "e": "Açıklama: İlgili mevzuat bakımından doğru yaklaşım Ekonomik büyümeyi yavaşlatmak seçeneğinde özetlenmiştir."
+  }
+];
+
+
+  document.getElementById("mainTitle").textContent = `${BASE_SUBJECT} Deneme Sınavı`;
+  document.getElementById("headerSubject").textContent = BASE_SUBJECT;
+  document.getElementById("sourceTag").textContent = SOURCE_TEXT;
+  document.title = `${BASE_SUBJECT} Deneme Sınavı`;
+
+  if (performance.navigation.type === performance.navigation.TYPE_RELOAD || !sessionStorage.getItem("session_active")) {
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith(storagePrefix())) localStorage.removeItem(k);
+    });
+    sessionStorage.setItem("session_active", "true");
+  }
+
+  let currentQuestions = [];
+  let currentIndex = 0;
+  let solvedIndex = -1;
+  let userAnswers = {};
+  let currentSetKey = "";
+  let stats = { correct: 0, wrong: 0 };
+  let wrongQuestionsMode = false;
+
+  function storagePrefix() {
+    return "exam_" + CURRENT_SUBJECT.replace(/\s+/g, "_") + "_";
+  }
+
+  function setStateKey(index) {
+    return storagePrefix() + "state_set_" + index;
+  }
+
+  function wrongQuestionsKey() {
+    return storagePrefix() + "wrong_questions_pool";
+  }
+
+  function getWrongQuestionsPool() {
+    return JSON.parse(localStorage.getItem(wrongQuestionsKey()) || "[]");
+  }
+
+  function saveWrongQuestionsPool(pool) {
+    localStorage.setItem(wrongQuestionsKey(), JSON.stringify(pool));
+  }
+
+  function addWrongQuestionToPool(question) {
+    const pool = getWrongQuestionsPool();
+
+    const exists = pool.some(item =>
+      item.q === question.q &&
+      JSON.stringify(item.o) === JSON.stringify(question.o)
+    );
+
+    if (!exists) {
+      pool.push({
+        q: question.q,
+        o: [...question.o],
+        c: question.c,
+        e: question.e || ""
+      });
+      saveWrongQuestionsPool(pool);
+    }
+  }
+
+  function normalizeQuestion(q, originalIndex) {
+    return {
+      id: q.id || ("q_" + originalIndex + "_" + Math.random().toString(36).slice(2, 8)),
+      originalNo: originalIndex + 1,
+      q: q.q,
+      o: [...q.o],
+      c: q.c,
+      e: q.e || "",
+      isRetry: q.isRetry || false,
+      retryFrom: q.retryFrom || null,
+      retryCount: q.retryCount || 0,
+      answeredCorrectly: q.answeredCorrectly || false
+    };
+  }
+
+  function initMenu() {
+    const menuGrid = document.getElementById("menuGrid");
+    menuGrid.innerHTML = "";
+
+    const totalSets = Math.ceil(questions.length / QUESTIONS_PER_SET);
+
+    let setsPerButton = 1;
+    let buttonCount = totalSets;
+
+    if (buttonCount > 10) {
+      setsPerButton = 2;
+      buttonCount = Math.ceil(totalSets / setsPerButton);
+    }
+
+    buttonCount = Math.min(buttonCount, 10);
+
+    for (let i = 0; i < buttonCount; i++) {
+      const startSetNo = i * setsPerButton + 1;
+      const endSetNo = Math.min(startSetNo + setsPerButton - 1, totalSets);
+
+      const start = (startSetNo - 1) * QUESTIONS_PER_SET;
+      const end = Math.min(endSetNo * QUESTIONS_PER_SET, questions.length);
+
+      if (start >= questions.length) continue;
+
+      const key = setStateKey(i);
+
+      const saved = JSON.parse(localStorage.getItem(key) || "null");
+      const solved = saved ? Object.keys(saved.userAnswers || {}).length : 0;
+      const correct = saved?.stats?.correct || 0;
+      const wrong = saved?.stats?.wrong || 0;
+
+      const totalCurrent = saved?.currentQuestions?.length || (end - start);
+      const isCompleted = saved ? (solved >= totalCurrent && totalCurrent > 0) : false;
+
+      const label = startSetNo === endSetNo
+        ? `Deneme-${startSetNo}`
+        : `Deneme-${startSetNo}-${endSetNo}`;
+
+      const btn = document.createElement("button");
+      btn.className = `menu-btn ${isCompleted ? "locked" : ""}`;
+      btn.innerHTML = `
+        <strong>${label}</strong><br>
+        <small>${end - start} Soru | Çözülen ${solved} (Doğru ${correct} Yanlış ${wrong})</small>
+      `;
+
+      if (!isCompleted) {
+        btn.onclick = () => startSet(i, key, start, end);
+      }
+
+      menuGrid.appendChild(btn);
+    }
+
+    const wrongPool = getWrongQuestionsPool();
+
+    if (wrongPool.length > 0) {
+      const wrongBtn = document.createElement("button");
+      wrongBtn.className = "wrong-menu-btn";
+      wrongBtn.innerHTML = `
+        <strong>Yanlış Yapılan Sorular</strong><br>
+        <small>${wrongPool.length} Soru | Yeniden çöz</small>
+      `;
+      wrongBtn.onclick = openWrongQuestions;
+      menuGrid.appendChild(wrongBtn);
+    }
+  }
+
+  function openWrongQuestions() {
+    const pool = getWrongQuestionsPool();
+    if (!pool.length) return;
+
+    wrongQuestionsMode = true;
+    currentSetKey = storagePrefix() + "wrong_questions_state";
+
+    const saved = JSON.parse(localStorage.getItem(currentSetKey) || "null");
+
+    if (saved) {
+      currentQuestions = saved.currentQuestions;
+      currentIndex = saved.currentIndex;
+      solvedIndex = saved.solvedIndex;
+      userAnswers = saved.userAnswers || {};
+      stats = saved.stats || { correct: 0, wrong: 0 };
+    } else {
+      currentQuestions = pool.map((q, i) => ({
+        id: "wrong_" + i + "_" + Math.random().toString(36).slice(2, 8),
+        originalNo: i + 1,
+        q: q.q,
+        o: [...q.o],
+        c: q.c,
+        e: q.e || "",
+        isRetry: false,
+        retryFrom: null,
+        retryCount: 0,
+        answeredCorrectly: false
+      }));
+
+      currentIndex = 0;
+      solvedIndex = -1;
+      userAnswers = {};
+      stats = { correct: 0, wrong: 0 };
+      saveState();
+    }
+
+    document.getElementById("menuContainer").style.display = "none";
+    document.getElementById("quizContainer").style.display = "block";
+    document.getElementById("headerSubject").textContent = "Yanlış Yapılan Sorular";
+    loadQuestion();
+    window.scrollTo(0, 0);
+  }
+
+  function startSet(idx, key, start, end) {
+    wrongQuestionsMode = false;
+    currentSetKey = key;
+
+    const saved = JSON.parse(localStorage.getItem(key) || "null");
+
+    if (saved) {
+      currentQuestions = saved.currentQuestions;
+      currentIndex = saved.currentIndex;
+      solvedIndex = saved.solvedIndex;
+      userAnswers = saved.userAnswers || {};
+      stats = saved.stats || { correct: 0, wrong: 0 };
+    } else {
+      currentQuestions = questions.slice(start, end).map((q, i) => normalizeQuestion(q, start + i));
+      currentIndex = 0;
+      solvedIndex = -1;
+      userAnswers = {};
+      stats = { correct: 0, wrong: 0 };
+      saveState();
+    }
+
+    document.getElementById("menuContainer").style.display = "none";
+    document.getElementById("quizContainer").style.display = "block";
+    document.getElementById("headerSubject").textContent = BASE_SUBJECT;
+    loadQuestion();
+    window.scrollTo(0, 0);
+  }
+
+  function getQuestionTitle(q) {
+    return `Soru-${q.originalNo}: ${q.q}`;
+  }
+
+  function loadQuestion() {
+    const q = currentQuestions[currentIndex];
+    const progress = ((currentIndex + 1) / currentQuestions.length) * 100;
+
+    document.getElementById("progressBar").style.width = progress + "%";
+    document.getElementById("footerLeft").textContent = `Kalan: ${Math.max(currentQuestions.length - (currentIndex + 1), 0)}`;
+    document.getElementById("footerRight").textContent = `${currentIndex + 1} / ${currentQuestions.length}`;
+    document.getElementById("questionText").textContent = getQuestionTitle(q);
+
+    const retryBadge = document.getElementById("retryBadge");
+    retryBadge.style.display = q.isRetry ? "block" : "none";
+
+    const optArea = document.getElementById("optionsArea");
+    const expArea = document.getElementById("explanationArea");
+    optArea.innerHTML = "";
+    expArea.style.display = "none";
+    expArea.innerHTML = "";
+
+    const letters = ["A", "B", "C", "D", "E"];
+
+    q.o.forEach((opt, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<strong>${letters[idx]})</strong> ${opt}`;
+
+      if (currentIndex <= solvedIndex) {
+        btn.disabled = true;
+        const userChoice = userAnswers[currentIndex];
+
+        if (idx === userChoice) {
+          if (userChoice === q.c) {
+            btn.classList.add("correct");
+            btn.innerHTML += ` <span class="tick show">✔</span>`;
+          } else {
+            btn.classList.add("wrong");
+          }
+        }
+
+        if (wrongQuestionsMode) {
+          if (idx === q.c) {
+            btn.classList.add("correct");
+            btn.innerHTML += ` <span class="tick show">✔</span>`;
+          }
+          expArea.innerHTML = `<strong>Açıklama:</strong> ${q.e}`;
+          expArea.style.display = "block";
+        } else {
+          if (userChoice === q.c) {
+            expArea.innerHTML = `<strong>Açıklama:</strong> ${q.e}`;
+            expArea.style.display = "block";
+          } else if (q.isRetry) {
+            if (idx === q.c) {
+              btn.classList.add("correct");
+              btn.innerHTML += ` <span class="tick show">✔</span>`;
+            }
+            expArea.innerHTML = `<strong>Açıklama:</strong> ${q.e}`;
+            expArea.style.display = "block";
+          }
+        }
+      } else {
+        btn.onclick = () => selectOption(idx);
+      }
+
+      optArea.appendChild(btn);
+    });
+
+    document.getElementById("prevBtn").style.visibility = currentIndex > 0 ? "visible" : "hidden";
+    document.getElementById("nextBtn").style.visibility = currentIndex <= solvedIndex ? "visible" : "hidden";
+  }
+
+  function selectOption(idx) {
+    const q = currentQuestions[currentIndex];
+    const isCorrect = idx === q.c;
+
+    userAnswers[currentIndex] = idx;
+    solvedIndex = Math.max(solvedIndex, currentIndex);
+
+    if (isCorrect) {
+      stats.correct++;
+      q.answeredCorrectly = true;
+    } else {
+      stats.wrong++;
+
+      if (wrongQuestionsMode) {
+        // Yanlış Yapılan Sorular modunda soru yeniden eklenmez.
+      } else {
+        addWrongQuestionToPool(q);
+
+        if (!q.isRetry) {
+          const retryQuestion = {
+            ...q,
+            isRetry: true,
+            retryFrom: q.originalNo,
+            retryCount: 1
+          };
+
+          const insertIndex = Math.min(currentIndex + 5, currentQuestions.length);
+          currentQuestions.splice(insertIndex, 0, retryQuestion);
+        }
+      }
+    }
+
+    saveState();
+    loadQuestion();
+  }
+
+  function saveState() {
+    localStorage.setItem(currentSetKey, JSON.stringify({
+      currentQuestions,
+      currentIndex,
+      solvedIndex,
+      userAnswers,
+      stats
+    }));
+  }
+
+  function goForward() {
+    if (currentIndex < solvedIndex) {
+      currentIndex = solvedIndex + 1;
+    } else if (currentIndex < currentQuestions.length - 1) {
+      currentIndex++;
+    } else {
+      return showMenu();
+    }
+
+    saveState();
+    loadQuestion();
+    window.scrollTo(0, 0);
+  }
+
+  function goBack() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      saveState();
+      loadQuestion();
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function showMenu() {
+    wrongQuestionsMode = false;
+    document.getElementById("headerSubject").textContent = BASE_SUBJECT;
+    document.getElementById("quizContainer").style.display = "none";
+    document.getElementById("menuContainer").style.display = "block";
+    initMenu();
+    window.scrollTo(0, 0);
+  }
+
+  function clearAllStatistics() {
+    if (confirm("Tüm veriler sıfırlansın mı?")) {
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith(storagePrefix())) localStorage.removeItem(k);
+      });
+      initMenu();
+    }
+  }
+
+  function resetCurrentSet() {
+    if (confirm("Bu deneme sıfırlansın mı?")) {
+      localStorage.removeItem(currentSetKey);
+      showMenu();
+    }
+  }
+
+  initMenu();
+</script>
+
+<script>
+function shuffleAllQuestions() {
+  if (!confirm("Tüm sorular ve şıkları karıştırılsın mı?")) return;
+
+  // Şıkları karıştır (doğruyu koru)
+  questions.forEach(q => {
+    const correct = q.o[q.c];
+
+    for (let i = q.o.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [q.o[i], q.o[j]] = [q.o[j], q.o[i]];
+    }
+
+    q.c = q.o.findIndex(x => x === correct);
+  });
+
+  // Soruları karıştır
+  for (let i = questions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [questions[i], questions[j]] = [questions[j], questions[i]];
+  }
+
+  // localStorage temizle (mevcut sistemle uyumlu)
+  if (typeof storagePrefix === "function") {
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith(storagePrefix())) localStorage.removeItem(k);
+    });
+  }
+
+  alert("Sorular karıştırıldı!");
+
+  if (typeof initMenu === "function") initMenu();
+}
+</script>
+
+</body>
+</html>
